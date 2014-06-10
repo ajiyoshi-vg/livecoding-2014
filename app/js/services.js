@@ -14,8 +14,8 @@ angular.module('myApp.services', []).
                     ret.push(from+i);
                 }
                 return ret;
-            },
-            flat_map : function(array, f) {
+            }
+            , flat_map : function(array, f) {
                 return array.reduce(function(acc, i){
                     return acc.concat(f(i));
                 }, []);
@@ -39,7 +39,6 @@ angular.module('myApp.services', []).
                     new Point(x-1, y-1), new Point(x, y-1), new Point(x+1, y-1)
                     ];
             }
-            
         }
         return function(x, y) { return new Point(x, y); };
     }).
@@ -54,27 +53,49 @@ angular.module('myApp.services', []).
                 });
             }
 
+            this.uniq = function(points){
+                var sorted = points.sort(function(a, b){
+                    if( a.isTheSameTo(b) ){
+                        return 0;
+                    }else if( a.x > b.x ){
+                        return -1;
+                    }else{
+                        return 1;
+                    }
+                });
+
+                return sorted.reduce(function(acc, i){
+                    if( acc.length == 0 ){
+                        return [i];
+                    }
+                    var last = acc[acc.length-1];
+                    if( i.isTheSameTo(last) ){
+                        return acc;
+                    }else{
+                        return acc.concat(i);
+                    }
+                }, []);
+            }
+
             this.next = function() {
-                var target = util.flat_map(this.aliveCells, function(here){
+                var target = this.uniq( util.flat_map(this.aliveCells, function(here){
                     return here.neighboring();
-                }).concat(this.aliveCells);
+                }).concat(this.aliveCells) );
 
                 var me = this;
                 var nextCells = target.filter(function(i){
                     var n = me.aliveCellNumAround(i.x, i.y);
-                    //console.log(n);
                     return (!me.aliveAt(i.x, i.y) && me.willBornAt(i.x, i.y)) ||
                         (me.aliveAt(i.x, i.y) && me.willStillAliveAt(i.x, i.y) );
                 });
-                //console.log(nextCells);
-                //this.aliveCells  =  nextCells;
+                console.log(nextCells.map(function(i){ return i.toString(); }).join(" "));
+                this.aliveCells  =  this.uniq( nextCells );
             }
             this.aliveCellNumAround = function(x, y){
                 var them = point(x, y).neighboring();
                 var me = this;
                 return them.filter(function(here){
-                    console.log(here.toString(), me.aliveAt(here));
-                    return me.aliveAt(here);
+                    return me.aliveAt(here.x, here.y);
                 }).length;
             }
             this.willBornAt = function(x, y){
