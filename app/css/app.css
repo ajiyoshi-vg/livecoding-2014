@@ -1,5 +1,8 @@
 /* app css stylesheet */
 
+table td {
+    cursor: pointer
+}
 .menu {
   list-style: none;
   border-bottom: 0.1em solid black;
